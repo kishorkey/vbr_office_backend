@@ -26,6 +26,7 @@ import com.VbrOffice.vbr.Entity.UserRole;
 import com.VbrOffice.vbr.Repository.UserDetailsRepo;
 import com.VbrOffice.vbr.Security.EncryptionUtil;
 import com.VbrOffice.vbr.Service.VbrOfficeService;
+import com.VbrOffice.vbr.Util.EmailOtpService;
 
 @RestController
 public class VbrOfficeController {
@@ -35,6 +36,9 @@ public class VbrOfficeController {
 	
 	@Autowired
 	private EncryptionUtil decrypt;
+	
+	 @Autowired
+	    private EmailOtpService emailOtpService;
 	
 	
     @GetMapping(path = "/getUser") 
@@ -164,6 +168,18 @@ public class VbrOfficeController {
     	 return new ResponseEntity<>(responseBody, HttpStatus.OK);
     } 
     
+    
+    @PostMapping("/send")
+    public ResponseEntity<String> sendOtp(@RequestParam String email) {
+    	emailOtpService.generateOtp(email);
+        return ResponseEntity.ok("OTP sent to " + email);
+    }
+
+    @PostMapping("/verify")
+    public ResponseEntity<String> verifyOtp(@RequestParam String email, @RequestParam String otp) {
+        boolean isValid = emailOtpService.verifyOtp(email, otp);
+        return isValid ? ResponseEntity.ok("OTP verified") : ResponseEntity.badRequest().body("Invalid OTP");
+    }
     
 }
     
