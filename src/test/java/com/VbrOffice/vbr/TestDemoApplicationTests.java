@@ -1,10 +1,10 @@
-package com.Test.Demo;
+package com.VbrOffice.vbr;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
 
 @SpringBootTest
-class TestDemoApplicationTests {
+class VbrOfficeApplicationTests {
 
 	@Test
 	void contextLoads() {
