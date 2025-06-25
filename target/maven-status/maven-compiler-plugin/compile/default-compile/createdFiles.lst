@@ -1,3 +1,4 @@
+com\VbrOffice\vbr\Security\WebSecurityconfig.class
 com\VbrOffice\vbr\Util\EmailOtpService.class
 com\VbrOffice\vbr\Entity\UserDetails.class
 com\VbrOffice\vbr\Security\EncryptionUtil.class
