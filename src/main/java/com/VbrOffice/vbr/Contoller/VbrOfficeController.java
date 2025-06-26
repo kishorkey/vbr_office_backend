@@ -22,6 +22,7 @@ import org.springframework.web.multipart.MultipartFile;
 import com.VbrOffice.vbr.Entity.Client;
 import com.VbrOffice.vbr.Entity.FileData;
 import com.VbrOffice.vbr.Entity.UserDetails;
+import com.VbrOffice.vbr.Entity.UserEmailVerification;
 import com.VbrOffice.vbr.Entity.UserRole;
 import com.VbrOffice.vbr.Repository.UserDetailsRepo;
 import com.VbrOffice.vbr.Security.EncryptionUtil;
@@ -37,8 +38,8 @@ public class VbrOfficeController {
 	@Autowired
 	private EncryptionUtil decrypt;
 	
-	 @Autowired
-	    private EmailOtpService emailOtpService;
+	@Autowired
+	private EmailOtpService emailOtpService;
 	
 	
     @GetMapping(path = "/getUser") 
@@ -47,6 +48,21 @@ public class VbrOfficeController {
     	 UserDetails responseBody = testdemoservice.getUserDetails(username);
     	 responseBody.setPassword(decrypt.decrypt(responseBody.getPassword()));
     	 return new ResponseEntity<>(responseBody, HttpStatus.OK);
+    } 
+    
+    
+    @PostMapping(path = "/createUser") 
+    public ResponseEntity<Object> createUser(@RequestBody UserEmailVerification createUser) 
+    { 
+    	 testdemoservice.createUser(createUser);
+    	 return new ResponseEntity<> (HttpStatus.OK);
+    }
+    
+    @PostMapping(path = "/verifyUser")
+    public ResponseEntity<Object> verifyUser(@RequestBody UserEmailVerification verifyUser,@RequestParam String otp)
+    { 
+    	 testdemoservice.verifyUser(verifyUser,otp);
+    	 return new ResponseEntity<> (HttpStatus.OK);
     } 
     
     @PostMapping(path = "/saveUser") 

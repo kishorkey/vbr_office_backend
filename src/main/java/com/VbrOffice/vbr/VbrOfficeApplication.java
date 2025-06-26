@@ -3,7 +3,6 @@ package com.VbrOffice.vbr;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
-import com.VbrOffice.vbr.TestProj.testproject;
 
 @SpringBootApplication
 public class VbrOfficeApplication {

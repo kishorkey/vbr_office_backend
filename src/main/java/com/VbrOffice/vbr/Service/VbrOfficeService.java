@@ -9,6 +9,7 @@ import org.springframework.web.multipart.MultipartFile;
 import com.VbrOffice.vbr.Entity.Client;
 import com.VbrOffice.vbr.Entity.FileData;
 import com.VbrOffice.vbr.Entity.UserDetails;
+import com.VbrOffice.vbr.Entity.UserEmailVerification;
 import com.VbrOffice.vbr.Entity.UserRole;
 
 public interface VbrOfficeService {
@@ -16,6 +17,10 @@ public interface VbrOfficeService {
 	public UserDetails getUserDetails(String username);
 
 	public UserDetails saveUserDetails(UserDetails userdetails);
+	
+	public String createUser(UserEmailVerification createUser);
+	
+	public String verifyUser(UserEmailVerification verifyUser, String otp);
 
 	public String login(String username, String password);
 

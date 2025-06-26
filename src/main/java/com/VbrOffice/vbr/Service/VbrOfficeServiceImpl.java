@@ -17,12 +17,15 @@ import org.springframework.web.multipart.MultipartFile;
 import com.VbrOffice.vbr.Entity.Client;
 import com.VbrOffice.vbr.Entity.FileData;
 import com.VbrOffice.vbr.Entity.UserDetails;
+import com.VbrOffice.vbr.Entity.UserEmailVerification;
 import com.VbrOffice.vbr.Entity.UserRole;
 import com.VbrOffice.vbr.Repository.ClientRepository;
 import com.VbrOffice.vbr.Repository.FileDataRepository;
 import com.VbrOffice.vbr.Repository.UserDetailsRepo;
 import com.VbrOffice.vbr.Repository.UserRoleRepo;
+import com.VbrOffice.vbr.Repository.userEmailVerificationRepository;
 import com.VbrOffice.vbr.Security.EncryptionUtil;
+import com.VbrOffice.vbr.Util.EmailOtpService;
 import com.VbrOffice.vbr.Util.ExcelUtils;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
@@ -40,6 +43,12 @@ public class VbrOfficeServiceImpl implements VbrOfficeService {
 
 	@Autowired
 	private ClientRepository clientRepository;
+	
+	@Autowired
+	private userEmailVerificationRepository  emailverification;
+	 
+	 @Autowired
+	private EmailOtpService emailOtpService;
 
 	@Autowired
 	private EncryptionUtil encryptionUtil;
@@ -53,8 +62,24 @@ public class VbrOfficeServiceImpl implements VbrOfficeService {
 
 	@Override
 	public UserDetails saveUserDetails(UserDetails userdetails) {
+		
 		userdetails.setPassword(encryptionUtil.encrypt(userdetails.getPassword()));
 		return userdetailsrepo.save(userdetails);
+	}
+	
+	@Override
+	public String createUser(UserEmailVerification createUser) {
+		 emailOtpService.generateOtp(createUser.getEmail());
+		 return "user created";
+	}
+	
+	@Override
+	public String verifyUser(UserEmailVerification verifyUser,String otp) {
+		 verifyUser.setStatus("T");
+		 emailverification.save(verifyUser);
+		 emailOtpService.generateOtp(verifyUser.getEmail());
+		 boolean isValid = emailOtpService.verifyOtp(verifyUser.getEmail(), otp);
+	     return isValid ? "OTP verified": "Invalid OTP";
 	}
 
 	@Override
