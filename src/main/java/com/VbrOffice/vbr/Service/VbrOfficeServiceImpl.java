@@ -76,6 +76,7 @@ public class VbrOfficeServiceImpl implements VbrOfficeService {
 	@Override
 	public String verifyUser(UserEmailVerification verifyUser,String otp) {
 		 verifyUser.setStatus("T");
+		 
 		 emailverification.save(verifyUser);
 		 emailOtpService.generateOtp(verifyUser.getEmail());
 		 boolean isValid = emailOtpService.verifyOtp(verifyUser.getEmail(), otp);
