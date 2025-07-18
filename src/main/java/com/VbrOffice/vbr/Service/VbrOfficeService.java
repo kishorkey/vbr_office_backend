@@ -20,7 +20,7 @@ public interface VbrOfficeService {
 	
 	public String createUser(UserEmailVerification createUser);
 	
-	public String verifyUser(UserEmailVerification verifyUser, String otp);
+	public boolean verifyUser(UserEmailVerification verifyUser, String otp);
 
 	public String login(String username, String password);
 

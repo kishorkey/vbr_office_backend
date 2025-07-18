@@ -38,7 +38,6 @@ import com.VbrOffice.vbr.Repository.userEmailVerificationRepository;
 		        message.setSubject("Your OTP Code");
 		        message.setText("Your OTP for VBR Associate login is: " + otp);
 		        mailSender.send(message);
-
 		        return otp;
 		    }
 

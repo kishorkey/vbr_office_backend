@@ -58,18 +58,31 @@ public class VbrOfficeController {
     	 return new ResponseEntity<> (HttpStatus.OK);
     }
     
+//    @PostMapping(path = "/verifyUser")
+//    public ResponseEntity<Object> verifyUser(@RequestBody UserEmailVerification verifyUser,@RequestParam String otp)
+//    { 
+//    	 testdemoservice.verifyUser(verifyUser,otp);
+//    	 return new ResponseEntity<> (HttpStatus.OK);
+//    } 
+    
     @PostMapping(path = "/verifyUser")
-    public ResponseEntity<Object> verifyUser(@RequestBody UserEmailVerification verifyUser,@RequestParam String otp)
-    { 
-    	 testdemoservice.verifyUser(verifyUser,otp);
-    	 return new ResponseEntity<> (HttpStatus.OK);
-    } 
+    public ResponseEntity<Boolean> verifyUser(@RequestBody UserEmailVerification verifyUser, @RequestParam String otp) {
+        try {
+            boolean isVerified = testdemoservice.verifyUser(verifyUser,otp);
+            return new ResponseEntity<>(isVerified, HttpStatus.OK);
+        } catch (Exception e) {
+            // Optionally log the error
+            e.printStackTrace(); // or use a logger
+            return new ResponseEntity<>(false, HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
     
     @PostMapping(path = "/saveUser") 
     @CrossOrigin(origins = "http://192.168.0.2:3000")
     public ResponseEntity<Object> saveUser(@RequestBody UserDetails userDetails) 
     { 
     	 testdemoservice.saveUserDetails(userDetails);
+    	 System.out.println(userDetails);
     	 return new ResponseEntity<> (HttpStatus.OK);
     } 
     
