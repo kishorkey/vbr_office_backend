@@ -39,6 +39,7 @@ SecretKeySpec skeySpec = new SecretKeySpec(key.getBytes(StandardCharsets.UTF_8),
     cipher.init(Cipher.DECRYPT_MODE, skeySpec, iv);
     
     byte[] original = cipher.doFinal(Base64.decodeBase64(encrypted));
+    System.out.println( new String(original));
     return new String(original);
     } catch (Exception ex) {
     ex.printStackTrace();

@@ -4,9 +4,15 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.InputStreamResource;
+import org.springframework.dao.DataAccessException;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
@@ -14,11 +20,17 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.multipart.MultipartFile;
 
+import com.VbrOffice.vbr.Entity.CaseCategory;
+import com.VbrOffice.vbr.Entity.CaseSubType;
 import com.VbrOffice.vbr.Entity.Client;
+import com.VbrOffice.vbr.Entity.ClientDTO;
+import com.VbrOffice.vbr.Entity.ClientWithFilesDTO;
 import com.VbrOffice.vbr.Entity.FileData;
 import com.VbrOffice.vbr.Entity.UserDetails;
 import com.VbrOffice.vbr.Entity.UserEmailVerification;
 import com.VbrOffice.vbr.Entity.UserRole;
+import com.VbrOffice.vbr.Repository.CaseCategoryRepository;
+import com.VbrOffice.vbr.Repository.CaseSubTypeRepository;
 import com.VbrOffice.vbr.Repository.ClientRepository;
 import com.VbrOffice.vbr.Repository.FileDataRepository;
 import com.VbrOffice.vbr.Repository.UserDetailsRepo;
@@ -43,6 +55,12 @@ public class VbrOfficeServiceImpl implements VbrOfficeService {
 
 	@Autowired
 	private ClientRepository clientRepository;
+	
+	 @Autowired
+	 private CaseCategoryRepository categoryRepo;
+	
+	 @Autowired
+	 private CaseSubTypeRepository subTypeRepo;
 	
 	@Autowired
 	private userEmailVerificationRepository  emailverification;
@@ -87,21 +105,48 @@ public class VbrOfficeServiceImpl implements VbrOfficeService {
 		UserDetails user = userdetailsrepo.getuserDetailsByUser(username);
 		user.setPassword(encryptionUtil.decrypt(user.getPassword()));
 		if (password.equalsIgnoreCase(user.getPassword())) {
+			
 			valieduser = "Login Successfull";
 		} else {
+			System.out.println("This is updated from backend"+ encryptionUtil.decrypt(user.getPassword()));
 			valieduser = "login Failed";
 		}
 		return valieduser;
 	}
 
-	@Override
-	public UserRole getUserRoles(String username) {
-		UserRole user = userrolerepo.getuserRolesByUsername(username);
-//		set custome role
-//		setRoles(user);
-		return user;
+//	@Override
+//	public UserRole getUserRoles(String username) {
+//		UserRole user = userrolerepo.getuserRolesByUsername(username);
+////		set custome role
+////		setRoles(user);
+//		return user;
+//
+//	}
+	
+	 @Override
+	    public UserRole getUserRoles(String username) {
+	        try {
+	            Optional<UserRole> userOpt = userrolerepo.getuserRolesByUsername(username);
 
-	}
+	            if (userOpt.isPresent()) {
+	                UserRole user = userOpt.get();
+	                // Optional: set custom roles
+	                // setRoles(user);
+	                return user;
+	            } else {
+	                return null; // No role assigned
+	            }
+
+	        } catch (DataAccessException ex) {
+	            // Handles all Spring DB-related errors
+	            ex.printStackTrace(); // For production, use a logger instead
+	            return null;
+	        } catch (Exception ex) {
+	            // Fallback for any unexpected exceptions
+	            ex.printStackTrace();
+	            return null;
+	        }
+	    }
 
 	@Override
 	public List<UserRole> getAllUserRoles() {
@@ -182,9 +227,123 @@ public class VbrOfficeServiceImpl implements VbrOfficeService {
 	}
 	
 	@Override
+	public void createClientWithFiles(String dto, List<MultipartFile> files) throws IOException {
+	    Client client = new Client();
+	    ClientDTO clientdto = new ClientDTO();
+	    ObjectMapper mapper = new ObjectMapper();
+	    clientdto = mapper.readValue(dto, ClientDTO.class);
+	    
+	    client.setUsername(clientdto.getUsername());
+	    client.setNumber(clientdto.getMobile());
+
+	    CaseCategory category = categoryRepo.findById(clientdto.getCategoryId())
+	        .orElseThrow(() -> new RuntimeException("Invalid category"));
+
+	    CaseSubType subType = subTypeRepo.findById(clientdto.getSubTypeId())
+	        .orElseThrow(() -> new RuntimeException("Invalid sub type"));
+
+	    client.setCategory(category);
+	    client.setSubType(subType);
+
+	    List<FileData> fileEntities = new ArrayList<>();
+	    for (MultipartFile file : files) {
+	        FileData data = new FileData();
+	        data.setFileName(file.getOriginalFilename());
+	        data.setFileType(file.getContentType());
+	        data.setData(file.getBytes());
+	        data.setClient(client);
+	        fileEntities.add(data);
+	    }
+
+	    client.setFiles(fileEntities);
+	    clientRepository.save(client);
+	}
+
+
+
+	
+//	@Override
+//	public List<ClientWithFilesDTO> searchClients(String name, String category, String subtype) {
+//	    List<Object[]> results = clientRepository.searchClientsRaw(name, category, subtype);
+//	    System.out.println("this is result :- " + results);
+//
+//	    return results.stream().map(row -> {
+//	        ClientWithFilesDTO dto = new ClientWithFilesDTO();
+//	        dto.setUserId(((Number) row[0]).longValue());
+//	        dto.setUsername((String) row[1]);
+//	        dto.setNumber(((Number) row[2]).longValue());
+//	        dto.setCategoryName((String) row[3]);
+//	        dto.setSubtypeName((String) row[4]);
+//
+//	        List<FileData> files = fileDataRepository.getFilesByClintId(dto.getUserId());
+//	        List<FileData> fileDTOs = files.stream().map(file -> {
+//	        	FileData f = new FileData();
+//	            f.setId(file.getId());
+//	            f.setFileName(file.getFileName());
+//	            f.setFileType(file.getFileType());
+//	            f.setData(file.getData());
+//	            return f;
+//	        }).toList();
+//
+//	        dto.setFiles(fileDTOs);
+//	        return dto;
+//	    }).toList();
+//	}
+	
+	@Override
+	public Page<Client> getClientsPage( int page, int size) {
+		 Pageable pageable = PageRequest.of(page, size);
+		
+		return clientRepository.getClients(pageable);
+	}
+
+	
+	
+	@Override
+	public Page<ClientWithFilesDTO> searchClients(String name, String category, String subtype, int page, int size) {
+	    Pageable pageable = PageRequest.of(page, size);
+	    Page<Object[]> results = clientRepository.searchClientsPaged(name, category, subtype, pageable);
+
+	    List<ClientWithFilesDTO> dtos = results.getContent().stream().map(row -> {
+	        ClientWithFilesDTO dto = new ClientWithFilesDTO();
+	        dto.setUserId(((Number) row[0]).longValue());
+	        dto.setUsername((String) row[1]);
+	        dto.setNumber(((Number) row[2]).longValue());
+	        dto.setCategoryName((String) row[3]);
+	        dto.setSubtypeName((String) row[4]);
+
+	        List<FileData> files = fileDataRepository.getFilesByClintId(dto.getUserId());
+	        List<FileData> fileDTOs = files.stream().map(file -> {
+	            FileData f = new FileData();
+	            f.setId(file.getId());
+	            f.setFileName(file.getFileName());
+	            f.setFileType(file.getFileType());
+	            f.setData(file.getData());
+	            return f;
+	        }).toList();
+
+	        dto.setFiles(fileDTOs);
+	        return dto;
+	    }).toList();
+
+	    return new PageImpl<>(dtos, pageable, results.getTotalElements());
+	}
+
+	
+
+	
+	
+	@Override
 	public Client getClientById(long id) {
 		
 		return clientRepository.getById(id);
 	}
 
+	@Override
+	public List<Client> getClients() {
+		// TODO Auto-generated method stub
+		return null;
+	}
+	
+	
 }

@@ -2,10 +2,13 @@ package com.VbrOffice.vbr.Contoller;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.InputStreamResource;
+import org.springframework.data.domain.Page;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -19,13 +22,17 @@ import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
+import com.VbrOffice.vbr.Dto.PagedResponse;
 import com.VbrOffice.vbr.Entity.Client;
+import com.VbrOffice.vbr.Entity.ClientDTO;
+import com.VbrOffice.vbr.Entity.ClientWithFilesDTO;
 import com.VbrOffice.vbr.Entity.FileData;
 import com.VbrOffice.vbr.Entity.UserDetails;
 import com.VbrOffice.vbr.Entity.UserEmailVerification;
 import com.VbrOffice.vbr.Entity.UserRole;
 import com.VbrOffice.vbr.Repository.UserDetailsRepo;
 import com.VbrOffice.vbr.Security.EncryptionUtil;
+import com.VbrOffice.vbr.Security.JwtUtil;
 import com.VbrOffice.vbr.Service.VbrOfficeService;
 import com.VbrOffice.vbr.Util.EmailOtpService;
 
@@ -40,6 +47,11 @@ public class VbrOfficeController {
 	
 	@Autowired
 	private EmailOtpService emailOtpService;
+	
+	 @Autowired
+	private JwtUtil jwtUtil;
+
+	 
 	
 	
     @GetMapping(path = "/getUser") 
@@ -95,23 +107,71 @@ public class VbrOfficeController {
     		String pass = decrypt.decrypt(password);
     		System.out.println(pass);
     		String valid =  testdemoservice.login(username, pass);
+    		System.out.println(valid);
        	 return new ResponseEntity<> (valid,HttpStatus.OK);
     	}
     	catch (Exception e) {
     		String valid =  testdemoservice.login(username, password);
-          	 return new ResponseEntity<> (valid,HttpStatus.OK);
+    		return new ResponseEntity<>("user Not Found", HttpStatus.NOT_FOUND);
 		}
     
     } 
     
-    
-    @GetMapping(path = "/getUserroles") 
+    @GetMapping(path = "/getUserroles")
     @CrossOrigin(origins = "http://192.168.0.2:3000")
-    public ResponseEntity<Object> getUserRoles(@RequestParam String username) 
-    { 
-    	 UserRole responseBody = testdemoservice.getUserRoles(username);
-    	 return new ResponseEntity<>(responseBody, HttpStatus.OK);
-    } 
+    public ResponseEntity<Object> getUserRoles(@RequestParam String username) {
+        try {
+            UserRole responseBody = testdemoservice.getUserRoles(username);
+
+            if (responseBody == null) {
+                return new ResponseEntity<>("No role assigned for user", HttpStatus.NOT_FOUND);
+            }
+
+            // Extract username and role from the responseBody
+            List<String> role = responseBody.getRoles(); // make sure this exists
+            String user = responseBody.getUsername(); // make sure this exists
+
+            // Generate JWT token
+            System.out.println(responseBody);
+            
+            String token = jwtUtil.generateToken(user, responseBody.getRoles());
+            
+            System.out.println(token);
+
+            // Build response
+            Map<String, Object> response = new HashMap<>();
+            response.put("username", user);
+            response.put("role", role);
+            response.put("token", token);
+
+            return new ResponseEntity<>(response, HttpStatus.OK);
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            return new ResponseEntity<>("No role assigned for user", HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+ 
+    
+    
+//    @GetMapping(path = "/getUserroles")
+//    @CrossOrigin(origins = "http://192.168.0.2:3000")
+//    public ResponseEntity<Object> getUserRoles(@RequestParam String username) {
+//        try {
+//            UserRole responseBody = testdemoservice.getUserRoles(username);
+//
+//            if (responseBody == null) {
+//                return new ResponseEntity<>("No role assigned for user", HttpStatus.NOT_FOUND);
+//            }
+//
+//            return new ResponseEntity<>(responseBody, HttpStatus.OK);
+//
+//        } catch (Exception e) {
+//            e.printStackTrace();
+//            return new ResponseEntity<>("No role assigned for user", HttpStatus.INTERNAL_SERVER_ERROR);
+//        }
+//    }
+
     
     
     @PostMapping(path = "/saveUserRole") 
@@ -189,6 +249,60 @@ public class VbrOfficeController {
     	 return new ResponseEntity<> (HttpStatus.OK);
     } 
     
+    @PostMapping(value = "/saveclientsDataWithCategory", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<String> saveClient(
+    		 @RequestPart("client") String clientDTO,
+    	     @RequestPart(value = "files", required = false) List<MultipartFile> files
+    ) throws IOException {
+    	testdemoservice.createClientWithFiles(clientDTO, files);
+        return ResponseEntity.ok("Client created");
+    }
+    
+//    
+//    @GetMapping("/searchClient")
+//    public List<ClientWithFilesDTO> searchClients(
+//            @RequestParam(required = false) String name,
+//            @RequestParam(required = false) String category,
+//            @RequestParam(required = false) String subType) {
+//    	System.out.println(name);
+//        return testdemoservice.searchClients(name, category, subType);
+//    }
+
+
+    
+    @GetMapping("/searchClient")
+    public ResponseEntity<PagedResponse<ClientWithFilesDTO>> searchClients(
+            @RequestParam(required = false) String name,
+            @RequestParam(required = false) String category,
+            @RequestParam(required = false) String subtype,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size
+    ) {
+        Page<ClientWithFilesDTO> clientPage = testdemoservice.searchClients(name, category, subtype, page, size);
+
+        PagedResponse<ClientWithFilesDTO> response = new PagedResponse<>(
+                clientPage.getContent(),
+                clientPage.getNumber(),
+                clientPage.getSize(),
+                clientPage.getTotalElements(),
+                clientPage.getTotalPages(),
+                clientPage.isLast()
+        );
+
+        return ResponseEntity.ok(response);
+    }
+
+    @GetMapping(path = "/getClients") 
+    public ResponseEntity<Object> getClients( @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size) 
+    { 
+    	Page<Client> responseBody = testdemoservice.getClientsPage(page, size);
+    	 
+    	 return new ResponseEntity<>(responseBody, HttpStatus.OK);
+    }
+    
+
+    
     @GetMapping(path = "/getClientById") 
     public ResponseEntity<Object> getClientById(@RequestParam long id) 
     { 
@@ -197,6 +311,7 @@ public class VbrOfficeController {
     	 return new ResponseEntity<>(responseBody, HttpStatus.OK);
     } 
     
+   
     
     @PostMapping("/send")
     public ResponseEntity<String> sendOtp(@RequestParam String email) {

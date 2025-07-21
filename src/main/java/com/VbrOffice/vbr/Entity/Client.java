@@ -13,6 +13,8 @@ import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
 
@@ -31,6 +33,14 @@ public class Client {
 	
 	@Column(name = "mobile")
 	private long number;
+	
+	@ManyToOne(fetch = FetchType.LAZY)
+	@JoinColumn(name = "category_id")
+	private CaseCategory category;
+
+	@ManyToOne(fetch = FetchType.LAZY)
+	@JoinColumn(name = "subtype_id")
+	private CaseSubType subType;
 	
 
 	 @OneToMany(mappedBy = "client", cascade = CascadeType.ALL, orphanRemoval = true)
@@ -66,6 +76,27 @@ public class Client {
 	public void setNumber(long number) {
 		this.number = number;
 	}
+	
+
+
+	public CaseCategory getCategory() {
+		return category;
+	}
+
+
+	public void setCategory(CaseCategory category) {
+		this.category = category;
+	}
+
+
+	public CaseSubType getSubType() {
+		return subType;
+	}
+
+
+	public void setSubType(CaseSubType subType) {
+		this.subType = subType;
+	}
 
 
 	public List<FileData> getFiles() {
@@ -80,9 +111,12 @@ public class Client {
 
 	@Override
 	public String toString() {
-		return "Client [user_Id=" + user_Id + ", username=" + username + ", number=" + number + ", files=" + files
-				+ "]";
+		return "Client [user_Id=" + user_Id + ", username=" + username + ", number=" + number + ", category=" + category
+				+ ", subType=" + subType + ", files=" + files + "]";
 	}
+
+
+	
 	
 
 }
