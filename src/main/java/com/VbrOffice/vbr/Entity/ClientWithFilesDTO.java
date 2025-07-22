@@ -6,7 +6,7 @@ public class ClientWithFilesDTO {
 
 	    private Long userId;
 	    private String username;
-	    private Long number;
+	    private String number;
 	    private String categoryName;
 	    private String subtypeName;
 	    private List<FileData> files;
@@ -22,10 +22,10 @@ public class ClientWithFilesDTO {
 		public void setUsername(String username) {
 			this.username = username;
 		}
-		public Long getNumber() {
+		public String getNumber() {
 			return number;
 		}
-		public void setNumber(Long number) {
+		public void setNumber(String number) {
 			this.number = number;
 		}
 		public String getCategoryName() {

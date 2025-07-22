@@ -308,7 +308,10 @@ public class VbrOfficeServiceImpl implements VbrOfficeService {
 	        ClientWithFilesDTO dto = new ClientWithFilesDTO();
 	        dto.setUserId(((Number) row[0]).longValue());
 	        dto.setUsername((String) row[1]);
-	        dto.setNumber(((Number) row[2]).longValue());
+	        dto.setNumber(((String) row[2]));
+//	        if interger is generated insteard of string we need to cast
+//	        dto.setCategoryName(row[3] != null ? row[3].toString() : null);
+//	        dto.setSubtypeName(row[4] != null ? row[4].toString() : null);
 	        dto.setCategoryName((String) row[3]);
 	        dto.setSubtypeName((String) row[4]);
 

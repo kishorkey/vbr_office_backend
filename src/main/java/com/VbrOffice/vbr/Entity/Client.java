@@ -32,7 +32,7 @@ public class Client {
 	private String username;
 	
 	@Column(name = "mobile")
-	private long number;
+	private String number;
 	
 	@ManyToOne(fetch = FetchType.LAZY)
 	@JoinColumn(name = "category_id")
@@ -68,12 +68,12 @@ public class Client {
 	}
 
 
-	public long getNumber() {
+	public String getNumber() {
 		return number;
 	}
 
 
-	public void setNumber(long number) {
+	public void setNumber(String number) {
 		this.number = number;
 	}
 	

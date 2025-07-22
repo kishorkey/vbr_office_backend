@@ -5,7 +5,7 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 @JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
 public class ClientDTO {
     private String username;
-    private long mobile;
+    private String mobile;
     private Long categoryId;
     private Long subTypeId;
     
@@ -15,10 +15,10 @@ public class ClientDTO {
 	public void setUsername(String username) {
 		this.username = username;
 	}
-	public long getMobile() {
+	public String getMobile() {
 		return mobile;
 	}
-	public void setMobile(long mobile) {
+	public void setMobile(String mobile) {
 		this.mobile = mobile;
 	}
 	public Long getCategoryId() {

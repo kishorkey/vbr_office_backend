@@ -48,7 +48,12 @@ public interface ClientRepository extends JpaRepository<Client, Long> {
     	
     	
     	@Query(value = """
-    		    SELECT DISTINCT c.*
+    		    SELECT DISTINCT  
+    		    c.client_id AS userId,
+    	        c.name AS username,
+    	        c.mobile AS number,
+    	        cat.name AS categoryName,
+    	        sub.name AS subtypeName
     		    FROM client_details c
     		    LEFT JOIN case_category cat ON c.category_id = cat.id
     		    LEFT JOIN case_subtype sub ON c.subtype_id = sub.id
