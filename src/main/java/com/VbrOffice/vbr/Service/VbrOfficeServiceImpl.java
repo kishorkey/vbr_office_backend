@@ -41,6 +41,10 @@ import com.VbrOffice.vbr.Util.EmailOtpService;
 import com.VbrOffice.vbr.Util.ExcelUtils;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.PersistenceContext;
+import jakarta.transaction.Transactional;
+
 @Service
 public class VbrOfficeServiceImpl implements VbrOfficeService {
 
@@ -70,6 +74,9 @@ public class VbrOfficeServiceImpl implements VbrOfficeService {
 
 	@Autowired
 	private EncryptionUtil encryptionUtil;
+	
+	@PersistenceContext
+    private EntityManager entityManager;
 
 	@Override
 	public UserDetails getUserDetails(String username) {
@@ -184,6 +191,21 @@ public class VbrOfficeServiceImpl implements VbrOfficeService {
 	public FileData getFileDataById(Long id) {
 		return fileDataRepository.findById(id).orElse(null);
 	}
+	
+//	@Override
+//    public void deleteFileById(int Id, String deletedByUser) {
+//    	 fileDataRepository.setAppUser(deletedByUser); // Set who deleted it
+//         fileDataRepository.softDeleteFileById(Id);
+//    }
+//	
+	 @Transactional
+	    public void deleteFileById(int Id, String deletedByUser) {
+	        // Use literal string for SET, because bind parameters won't work here
+	        String sql = "SET my.app_user = '" + deletedByUser.replace("'", "''") + "'"; // Escape single quotes
+	        entityManager.createNativeQuery(sql).executeUpdate();
+
+	        fileDataRepository.softDeleteFileById(Id);
+	    }
 
 	@Override
 	public UserRole saveUserRoles(UserRole usertbs) {
@@ -339,7 +361,7 @@ public class VbrOfficeServiceImpl implements VbrOfficeService {
 	@Override
 	public Client getClientById(long id) {
 		
-		return clientRepository.getById(id);
+		return clientRepository.getClientByClientId(id);
 	}
 
 	@Override

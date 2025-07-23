@@ -54,4 +54,6 @@ public interface VbrOfficeService {
 
 	Page<Client> getClientsPage(int page, int size);
 
+	public void deleteFileById(int id, String deletedBy);
+
 }

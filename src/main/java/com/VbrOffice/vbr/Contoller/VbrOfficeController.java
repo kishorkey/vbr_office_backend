@@ -14,6 +14,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -241,6 +242,12 @@ public class VbrOfficeController {
         return new ResponseEntity<>(fileData.getData(), headers, HttpStatus.OK);
     }
     
+    @DeleteMapping("/getFileById")
+    public ResponseEntity<String> deleteFile(@RequestParam int id, @RequestParam String deletedBy) {
+    	testdemoservice.deleteFileById(id, deletedBy);
+        return ResponseEntity.ok("File soft-deleted successfully.");
+    }
+    
     @PostMapping(path = "/saveClientdata") 
     public ResponseEntity<Object> saveClientdata(@RequestPart(value = "data",required = false)  String data,
     		@RequestPart(value = "files",required = true)  List<MultipartFile> files) throws IOException
@@ -248,6 +255,8 @@ public class VbrOfficeController {
     	 testdemoservice.saveClientdata(data,files);
     	 return new ResponseEntity<> (HttpStatus.OK);
     } 
+    
+    
     
     @PostMapping(value = "/saveclientsDataWithCategory", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<String> saveClient(
@@ -304,9 +313,9 @@ public class VbrOfficeController {
 
     
     @GetMapping(path = "/getClientById") 
-    public ResponseEntity<Object> getClientById(@RequestParam long id) 
+    public ResponseEntity<Object> getClientById(@RequestParam long Id) 
     { 
-    	 Client responseBody = testdemoservice.getClientById(id);
+    	 Client responseBody = testdemoservice.getClientById(Id);
     	 
     	 return new ResponseEntity<>(responseBody, HttpStatus.OK);
     } 

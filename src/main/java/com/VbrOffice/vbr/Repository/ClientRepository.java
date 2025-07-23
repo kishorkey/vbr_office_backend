@@ -28,6 +28,9 @@ public interface ClientRepository extends JpaRepository<Client, Long> {
     @Query(value = "SELECT * FROM client_details WHERE sub_type_id = :subTypeId", nativeQuery = true)
     List<Client> findBySubTypeId(Long subTypeId);
     
+    @Query(value = "SELECT * FROM client_details WHERE client_id = :Id", nativeQuery = true)
+    Client getClientByClientId(Long Id);
+    
 //    @Query(value = """
 //    	    SELECT DISTINCT 
 //    	        c.client_id AS userId,
