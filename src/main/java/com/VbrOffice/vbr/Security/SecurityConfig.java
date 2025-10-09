@@ -25,7 +25,7 @@ public class SecurityConfig {
             .csrf(csrf -> csrf.disable())
             .cors(cors -> {}) 
             .authorizeHttpRequests(auth -> auth
-                .requestMatchers("/login", "/getUserroles").permitAll()
+                .requestMatchers("/login","/createUser", "/getUserroles","/verifyUser","/saveUser","/actuator/**","/reddis/**","/getClients","/kafka/**").permitAll()
                 .requestMatchers("/getClients/**").hasRole("ADMIN")
 //                .requestMatchers("/user/**").hasAnyRole("USER", "ADMIN")
                 .anyRequest().authenticated()

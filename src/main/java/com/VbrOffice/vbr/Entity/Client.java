@@ -1,8 +1,10 @@
 package com.VbrOffice.vbr.Entity;
 
+import java.io.Serializable;
 import java.util.List;
 import java.util.Set;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 
@@ -21,7 +23,9 @@ import jakarta.persistence.Table;
 @Entity
 @Table(name = "client_details")
 @JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
-public class Client {
+public class Client implements Serializable {
+	
+    private static final long serialVersionUID = 1L; 
 	
 	@Id
 	@Column(name = "client_id")
@@ -43,9 +47,9 @@ public class Client {
 	private CaseSubType subType;
 	
 
-	 @OneToMany(mappedBy = "client", cascade = CascadeType.ALL, orphanRemoval = true)
-	 @JsonManagedReference
-     private List<FileData> files;
+	@OneToMany(mappedBy = "client", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
+	@JsonManagedReference
+	private List<FileData> files;
 
 
 	public long getUser_Id() {

@@ -7,6 +7,7 @@ import java.util.List;
 import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.core.io.InputStreamResource;
 import org.springframework.dao.DataAccessException;
 import org.springframework.data.domain.Page;
@@ -248,6 +249,41 @@ public class VbrOfficeServiceImpl implements VbrOfficeService {
 
 	}
 	
+	/////////////////////kafka data binding to database///////////////////////////////
+	@Override
+	public String saveClientdataUsingKafka(List<ClientDTO> clientDTOList) throws IOException {
+		
+		try {
+			// Convert JSON to Client
+//			client = mapper.readValue(data, Client.class);
+//			if (files != null) {
+				for (ClientDTO clientDTO : clientDTOList) {
+					Client client = new Client();
+					client.setUsername(clientDTO.getUsername());
+					client.setNumber(clientDTO.getMobile());
+				    CaseCategory category = categoryRepo.findById(clientDTO.getCategoryId())
+					        .orElseThrow(() -> new RuntimeException("Invalid category"));
+
+					    CaseSubType subType = subTypeRepo.findById(clientDTO.getSubTypeId())
+					        .orElseThrow(() -> new RuntimeException("Invalid sub type"));
+
+					    client.setCategory(category);
+					    client.setSubType(subType);
+					    clientRepository.save(client);
+				}
+//			}
+			// ✅ Now save client with all files linked properly
+			return "data saved";
+
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+
+		return "data failed to saved";
+
+	}
+	
+	
 	@Override
 	public void createClientWithFiles(String dto, List<MultipartFile> files) throws IOException {
 	    Client client = new Client();
@@ -313,6 +349,7 @@ public class VbrOfficeServiceImpl implements VbrOfficeService {
 //	}
 	
 	@Override
+	@Cacheable(value = "usersCache", key = "'page=' + #page + ',size=' + #size")
 	public Page<Client> getClientsPage( int page, int size) {
 		 Pageable pageable = PageRequest.of(page, size);
 		
@@ -322,6 +359,10 @@ public class VbrOfficeServiceImpl implements VbrOfficeService {
 	
 	
 	@Override
+	 @Cacheable(
+		        value = "clientsSearchCache",
+		        key = "'name=' + #name + ',category=' + #category + ',subtype=' + #subtype + ',page=' + #page + ',size=' + #size"
+		    )
 	public Page<ClientWithFilesDTO> searchClients(String name, String category, String subtype, int page, int size) {
 	    Pageable pageable = PageRequest.of(page, size);
 	    Page<Object[]> results = clientRepository.searchClientsPaged(name, category, subtype, pageable);

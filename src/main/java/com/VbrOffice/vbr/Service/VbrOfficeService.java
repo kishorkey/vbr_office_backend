@@ -56,4 +56,6 @@ public interface VbrOfficeService {
 
 	public void deleteFileById(int id, String deletedBy);
 
+	String saveClientdataUsingKafka(List<ClientDTO> clientDTOList) throws IOException;
+
 }

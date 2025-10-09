@@ -2,13 +2,16 @@ package com.VbrOffice.vbr.Contoller;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.core.io.InputStreamResource;
 import org.springframework.data.domain.Page;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -35,6 +38,12 @@ import com.VbrOffice.vbr.Repository.UserDetailsRepo;
 import com.VbrOffice.vbr.Security.EncryptionUtil;
 import com.VbrOffice.vbr.Security.JwtUtil;
 import com.VbrOffice.vbr.Service.VbrOfficeService;
+import com.VbrOffice.vbr.Util.ClientDataInitializer;
+import com.VbrOffice.vbr.Util.ClientDataStore;
+import com.VbrOffice.vbr.Util.ClientProducer;
+//import com.VbrOffice.vbr.Util.ClientDataInitializer;
+//import com.VbrOffice.vbr.Util.ClientDataStore;
+//import com.VbrOffice.vbr.Util.ClientProducer;
 import com.VbrOffice.vbr.Util.EmailOtpService;
 
 @RestController
@@ -52,7 +61,18 @@ public class VbrOfficeController {
 	 @Autowired
 	private JwtUtil jwtUtil;
 
+	 @Autowired
+	private RedisTemplate<String, Object> redisTemplate;
 	 
+	  @Autowired
+	 private  ClientProducer clientProducer;
+	 
+	  @Autowired
+	 private  ClientDataInitializer clientDataInitializer;
+	  
+	 @Autowired
+	  private  ClientDataStore clientDataStore;
+
 	
 	
     @GetMapping(path = "/getUser") 
@@ -333,6 +353,71 @@ public class VbrOfficeController {
         boolean isValid = emailOtpService.verifyOtp(email, otp);
         return isValid ? ResponseEntity.ok("OTP verified") : ResponseEntity.badRequest().body("Invalid OTP");
     }
+    
+    /////////////////////////////////////////////
+    ///
+    ///
+    ///
+    @PostMapping("reddis/setReddis")
+    public String setKey(@RequestParam String key, @RequestParam String value) {
+        redisTemplate.opsForValue().set(key, value);
+        return "✅ Key saved: " + key + " = " + value;
+    }
+
+    @GetMapping("reddis/getReddis")
+    public String getKey(@RequestParam String key) {
+        Object value = redisTemplate.opsForValue().get(key);
+        return "🔍 Key: " + key + ", Value: " + value;
+    }
+    
+
+    @PostMapping("kafka/send")
+    public String sendClient(@RequestBody ClientDTO clientDTO,
+                             @RequestParam int partition) {
+        clientProducer.sendClientDataToPartition(clientDTO, partition);
+        return "✅ Client sent to partition " + partition;
+    }
+
+    /**
+     * API to trigger the generation & sending of 90 clients manually
+     * Example: POST /api/clients/generate
+     */
+    @PostMapping("kafka/generate")
+    public String generateClients() {
+        clientDataInitializer.generateAndSendClients();
+        return "✅ Generated and sent 90 ClientDTO objects to Kafka";
+    }
+
+    /**
+     * Health check API
+     */
+    @GetMapping("kafka/health")
+    public String healthCheck() {
+        return "Client API is running";
+    }
+    
+    
+
+
+    @GetMapping("kafka/clients")
+    public String getAllClients() {
+        List<ClientDTO> clients =  clientDataStore.getAll();
+         try {
+ 			testdemoservice.saveClientdataUsingKafka(clients);
+ 			 return "Data added to database";
+ 		} catch (IOException e) {
+ 			// TODO Auto-generated catch block
+ 			e.printStackTrace();
+ 		}
+         return "Data failed to add database";
+        
+    }
+
+    // API 3 — Get all partitions and topic info
+//    @GetMapping("/topic-info")
+//    public List<String> getTopicInfo() {
+//        return clientProducerService.getTopicInfo();
+//    }
     
 }
     

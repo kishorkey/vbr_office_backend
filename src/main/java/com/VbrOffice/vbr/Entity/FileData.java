@@ -1,4 +1,5 @@
 package com.VbrOffice.vbr.Entity;
+import java.io.Serializable;
 import java.util.Arrays;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
@@ -7,7 +8,9 @@ import jakarta.persistence.*;
 
 	@Entity
 	@Table(name = "file_data")
-	public class FileData {
+	public class FileData  implements Serializable {
+		
+	    private static final long serialVersionUID = 1L;
 
 	    @Id
 	    @GeneratedValue(strategy = GenerationType.IDENTITY)

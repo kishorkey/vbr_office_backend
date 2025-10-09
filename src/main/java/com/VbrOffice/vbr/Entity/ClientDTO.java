@@ -1,9 +1,14 @@
 package com.VbrOffice.vbr.Entity;
 
+import java.io.Serializable;
+
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
 @JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
-public class ClientDTO {
+public class ClientDTO implements Serializable {
+	
+    private static final long serialVersionUID = 1L; 
+
     private String username;
     private String mobile;
     private Long categoryId;
@@ -34,5 +39,15 @@ public class ClientDTO {
 		this.subTypeId = subTypeId;
 	}
     
-	
+
+	  public ClientDTO(String username, String mobile, Long categoryId, Long subTypeId) {
+	        this.username = username;
+	        this.mobile = mobile;
+	        this.categoryId = categoryId;
+	        this.subTypeId = subTypeId;
+	    }
+	public ClientDTO() {
+		// TODO Auto-generated constructor stub
+	}
+
 }
