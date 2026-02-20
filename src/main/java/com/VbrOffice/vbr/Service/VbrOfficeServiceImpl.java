@@ -304,13 +304,17 @@ public class VbrOfficeServiceImpl implements VbrOfficeService {
 	    client.setSubType(subType);
 
 	    List<FileData> fileEntities = new ArrayList<>();
-	    for (MultipartFile file : files) {
-	        FileData data = new FileData();
-	        data.setFileName(file.getOriginalFilename());
-	        data.setFileType(file.getContentType());
-	        data.setData(file.getBytes());
-	        data.setClient(client);
-	        fileEntities.add(data);
+
+	    // Handle null or empty files list
+	    if (files != null && !files.isEmpty()) {
+	        for (MultipartFile file : files) {
+	            FileData data = new FileData();
+	            data.setFileName(file.getOriginalFilename());
+	            data.setFileType(file.getContentType());
+	            data.setData(file.getBytes());
+	            data.setClient(client);
+	            fileEntities.add(data);
+	        }
 	    }
 
 	    client.setFiles(fileEntities);
@@ -349,20 +353,18 @@ public class VbrOfficeServiceImpl implements VbrOfficeService {
 //	}
 	
 	@Override
-	@Cacheable(value = "usersCache", key = "'page=' + #page + ',size=' + #size")
+//	@Cacheable(value = "usersCache", key = "'page=' + #page + ',size=' + #size")
 	public Page<Client> getClientsPage( int page, int size) {
 		 Pageable pageable = PageRequest.of(page, size);
 		
 		return clientRepository.getClients(pageable);
 	}
 
-	
-	
-	@Override
-	 @Cacheable(
-		        value = "clientsSearchCache",
-		        key = "'name=' + #name + ',category=' + #category + ',subtype=' + #subtype + ',page=' + #page + ',size=' + #size"
-		    )
+	@Override	
+//	 @Cacheable(
+//    value = "clientsSearchCache",
+//    key = "'name=' + #name + ',category=' + #category + ',subtype=' + #subtype + ',page=' + #page + ',size=' + #size"
+//)
 	public Page<ClientWithFilesDTO> searchClients(String name, String category, String subtype, int page, int size) {
 	    Pageable pageable = PageRequest.of(page, size);
 	    Page<Object[]> results = clientRepository.searchClientsPaged(name, category, subtype, pageable);
